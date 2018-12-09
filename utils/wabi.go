@@ -1,10 +1,12 @@
 package utils
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/math"
 )
 
 // WABI is wrap of ethereum ABI
@@ -13,7 +15,7 @@ type WABI struct {
 }
 
 // New .
-func New(abiJSON string) *WABI {
+func NewWABI(abiJSON string) *WABI {
 	wrapABI, err := abi.JSON(strings.NewReader(abiJSON))
 	if err != nil {
 		panic(err)
@@ -21,8 +23,25 @@ func New(abiJSON string) *WABI {
 	return &WABI{wrapABI}
 }
 
-func (w *WABI) Encode(method string, args ...interface{}) (string, error) {
-	by, err := w.wrapABI.Pack(method, args...)
+func (w *WABI) Encode(method string, args ...string) (string, error) {
+	inputs := w.wrapABI.Methods[method].Inputs
+	if len(inputs) != len(args) {
+		return "", fmt.Errorf("argument count mismatch: %d of %d", len(args), len(inputs))
+	}
+
+	var iArgs []interface{}
+	for i, v := range args {
+		switch inputs[i].Type.String() {
+		case "address":
+			iArgs = append(iArgs, common.HexToAddress(v))
+		case "uint256":
+			iArgs = append(iArgs, math.MustParseBig256(v))
+		default:
+			return "", fmt.Errorf("unsupported arg type")
+		}
+	}
+
+	by, err := w.wrapABI.Pack(method, iArgs...)
 	if err != nil {
 		return "", err
 	}

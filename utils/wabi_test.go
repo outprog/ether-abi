@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"math/big"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -26,9 +25,9 @@ func TestEncode(t *testing.T) {
 		}
 	]`
 
-	wabi := New(json)
+	wabi := NewWABI(json)
 
-	hex, err := wabi.Encode("withdraw", big.NewInt(10000000000000000))
+	hex, err := wabi.Encode("withdraw", "10000000000000000")
 	require.NoError(t, err)
 	assert.Equal(t, "2e1a7d4d000000000000000000000000000000000000000000000000002386f26fc10000", hex)
 }

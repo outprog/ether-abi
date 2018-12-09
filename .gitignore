@@ -12,3 +12,5 @@
 *.out
 
 abi.json
+vendor
+.DS_Store
